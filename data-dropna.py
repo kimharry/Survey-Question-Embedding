@@ -1,11 +1,13 @@
 import pandas as pd
-import sent2vec
 
 # Load the CSV file
 data = pd.read_csv('data/raw-data.csv')
 
 # drop the first column
 data = data.drop(data.columns[0], axis=1)
+
+# drop columns related to stackoverflow
+data = data.drop(columns=['NEWSOSites', 'SOVisitFreq', 'SOAccount', 'SOPartFreq', 'SOHow', 'SOComm'])
 
 # drop the column if half of the answers are N/A
 for column in data.columns:
