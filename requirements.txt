@@ -1,0 +1,8 @@
+# Libraries
+pandas
+https://github.com/epfml/sent2vec
+
+# Setting
+Make "model" directory
+Download "wiki_unigrams.bin" from https://github.com/epfml/sent2vec
+Put "wiki_unigrams.bin" in "model" directory
