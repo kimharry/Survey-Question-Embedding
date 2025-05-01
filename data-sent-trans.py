@@ -2,7 +2,7 @@ import pandas as pd
 from sentence_transformers import SentenceTransformer
 
 # Load the CSV file
-data = pd.read_csv('data/na-removed-data2.csv')
+data = pd.read_csv('data/na-removed-data.csv')
 
 vectorized = pd.DataFrame()
 
@@ -17,4 +17,4 @@ for column in data.columns:
     # Convert each vector to a list and add it as a new column
     vectorized[column] = vec.tolist()
 
-vectorized.to_csv('data/vectorized-data4.csv', index=False)
+vectorized.to_csv('data/vectorized-data.csv', index=False)

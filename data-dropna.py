@@ -19,4 +19,4 @@ for column in data.columns:
     if data[column].isna().sum() > len(data) / 2:
         data = data.drop(column, axis=1)
 
-data.to_csv('data/na-removed-data2.csv', index=False)
+data.to_csv('data/na-removed-data.csv', index=False)
