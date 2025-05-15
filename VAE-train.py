@@ -3,16 +3,15 @@ from VAE import VAE
 import torch.optim as optim
 import pandas as pd
 import argparse
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = "mps"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Hyperparameters
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch-size', type=int, default=128)
 parser.add_argument('--learning-rate', type=float, default=0.001)
-parser.add_argument('--epochs', type=int, default=10)
+parser.add_argument('--epochs', type=int, default=100)
 args = parser.parse_args()
 
 # Load Data
@@ -36,7 +35,7 @@ model.train()
 
 # Initialize optimizer
 optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
-scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5)
 
 writer = SummaryWriter('logs')
 
@@ -50,23 +49,23 @@ for epoch in range(args.epochs):
         loss = model.loss(recon_batch, batch, mu, logvar)
         loss.backward()
         optimizer.step()
-    scheduler.step()
-    print(f'Epoch {epoch+1}, Loss: {loss.item():.4f}, Learning Rate: {scheduler.get_last_lr()[0]:.4f}')
+
+    print(f'Epoch {epoch+1}, Loss: {loss.item():.4f}, Learning Rate: {optimizer.param_groups[0]["lr"]: .4f}')
     writer.add_scalar('Train Loss', loss.item(), epoch)
-    writer.add_scalar('Learning Rate', scheduler.get_last_lr()[0], epoch)
+    writer.add_scalar('Learning Rate', optimizer.param_groups[0]['lr'], epoch)
 
     # Test
-    if epoch % 5 == 0:
-        model.eval()
-        test_loss = 0
-        with torch.no_grad():
-            for i in range(0, len(test_data), args.batch_size):
-                batch = test_data[i:i+args.batch_size]
-                recon_batch, mu, logvar = model(batch)
-                test_loss += model.loss(recon_batch, batch, mu, logvar).item()
-        test_loss /= len(test_data)
-        print(f'Test Loss: {test_loss:.4f}')
-        model.train()
+    model.eval()
+    test_loss = 0
+    with torch.no_grad():
+        for i in range(0, len(test_data), args.batch_size):
+            batch = test_data[i:i+args.batch_size]
+            recon_batch, mu, logvar = model(batch, is_train=False)
+            test_loss += model.loss(recon_batch, batch, mu, logvar).item()
+    test_loss /= len(test_data)
+    print(f'Test Loss: {test_loss:.4f}')
+    model.train()
+    scheduler.step(test_loss)
     if test_loss < best_test_loss:
         best_test_loss = test_loss
         torch.save(model.state_dict(), 'vae_best.pth')

@@ -46,10 +46,13 @@ class VAE(nn.Module):
         x = self.relu(self.fc4(x))
         return self.fc51(x), self.fc52(x)
 
-    def reparameterize(self, mu, logvar):
-        std = torch.exp(logvar / 2)
-        eps = torch.randn_like(std)
-        return mu + eps * std
+    def reparameterize(self, mu, logvar, is_train=True):
+        if is_train:
+            std = torch.exp(logvar / 2)
+            eps = torch.randn_like(std)
+            return mu + eps * std
+        else:
+            return mu
 
     def decode(self, z):
         z = self.relu(self.fc6(z))
@@ -58,9 +61,9 @@ class VAE(nn.Module):
         z = self.relu(self.fc9(z))
         return z
 
-    def forward(self, x):
+    def forward(self, x, is_train=True):
         mu, logvar = self.encode(x)
-        z = self.reparameterize(mu, logvar)
+        z = self.reparameterize(mu, logvar, is_train)
         return self.decode(z), mu, logvar
 
     def loss(self, recon_x, x, mu, logvar):
