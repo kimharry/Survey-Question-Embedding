@@ -1,6 +1,8 @@
 # Too big files
 model/
 data/vectorized-data.csv
+data/vectorized-data.json
+logs/
 
 # MacOS
 .DS_Store
